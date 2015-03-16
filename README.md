@@ -3,22 +3,14 @@
 The billing plugin supports in-app purchases from the Google Play Store on
 Android, and from the Apple App Store on iOS, through one simple unified API.
 
-## Demo
-Check out [the demo application](https://github.com/gameclosure/demoBilling) for
-a working example of the various billing features.
+# IMPORTANT
 
-## Installation
-Install the billing module using the standard devkit install process:
+This branch disables automatic item consumption from getPurchases. This is
+catastrophic on android if your game has any purchases that are consumable -
+(if you miss a purchase, you will be given it over and over, every time you
+ load the app). DO NOT USE THIS WITHOUT UNDERSTANDING THE RAMIFICATIONS.
+*YOU HAVE BEEN WARNED.*
 
-~~~
-devkit install https://github.com/gameclosure/billing#v3.0.1
-~~~
-
-You can now import the billing object anywhere in your application:
-
-~~~
-import billing;
-~~~
 
 
 ### iOS Setup
@@ -41,6 +33,9 @@ account if you want to use test transactions instead of real transactions.
 
 Your in app purchase names should match the item names you use in your
 javascript code.
+
+NOTE - SEE WARNING ABOVE ABOUT AUTO-CONSUME.
+
 
 
 ## Handling Purchases
@@ -85,8 +80,8 @@ Consumable purchases must be tracked by your own application.  Managed purchases
 can be tracked by the App Store, but will require you to implement a Restore
 Purchases button in your app.  If you are tracking managed purchases in your
 local storage data, be aware that the `billing.onPurchase` callback will likely
-be called with that item again while restoring purchases, so you will need to
-avoid double-crediting the player.
+be called with that item again while restoring purchases (and on load for
+android), so you will need to avoid double-crediting the player.
 
 
 ## Handling Purchase Failures
@@ -400,6 +395,11 @@ The purchase may fail if the player clicks to deny the purchase, or if the netwo
 
 If the purchase succeeds, then the `billing.onPurchase` callback you set will be called.  This callback should be where you credit the user for the purchase.
 
+IN THIS BRANCH ONLY you can specify items to NOT be auto-consumed from the store
+(so you can implement managed items on android) by passing an object instead of
+a string for the itemName in the format `{sku: itemName, consume: false}`.
+
+
 ~~~
 billing.purchase("fiveCoins");
 ~~~
@@ -423,8 +423,6 @@ purchase.
 
 When restoration completes, the optional callback provided to `billing.restore` will be invoked.
 
-NOTE: this is only implemented for the ios App Store. On android, this returns
-immediately with a 'not implemented on android' failure.
 
 ~~~
 billing.restore(function(err) {
